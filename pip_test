@@ -1,0 +1,41 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <glob.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <semaphore.h>
+int main(void){
+    int fd[2];        
+    sem_t p;
+    sem_init (&p, 0, 0);
+    pipe(fd);
+    int pid;
+    if ((pid = fork()) != 0) {
+        printf("parent\n");
+
+        close(fd[1]);
+        
+        dup2(open("a.c", O_RDONLY), fd[1]);
+        sem_post(&p);
+        printf("wait for child\n");
+
+    } else {
+        sem_wait(&p);
+        printf("child start\n");
+        close(fd[0]);
+        //?fd???????STDIN
+        dup2(fd[1], STDOUT_FILENO);
+        // ????????? < ?????????1
+
+        printf("child end\n");
+    }
+    return 0;
+}
